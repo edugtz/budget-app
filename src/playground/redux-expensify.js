@@ -1,5 +1,4 @@
 import { createStore, combineReducers } from 'redux';
-import uuid from 'uuid';
 
 const demoState = {
     expenses: [
@@ -19,96 +18,20 @@ const demoState = {
     }
 }
 
-// REDUCERS DEFAULT STATE
-const expensesReducerDefaultState = [];
-const filtersReducerDefaultState = {
-    text: '',
-    sortBy: 'date',
-    startDate: undefined,
-    endDate: undefined
-};
+const getVisibleExpenses = (expenses, { text, sortBy, startDate, endDate}) => {
+    return expenses.filter(expense => {
+        const startDateMatch = typeof startDate !== 'number' || expense.createdAt >= startDate; 
+        const endDateMatch = typeof startDate !== 'number' || expense.createdAt <= endDate;
+        const textMatch = expense.description.toLowerCase().includes(text.toLowerCase());
 
-// ACTIONS
-const addExpense = (payload = {}) => {
-    const { description = '', note = '', amount = 0, createdAt = 0 } = payload;
-
-    return {
-        type: 'ADD_EXPENSE',
-        expense: {
-            id: uuid(),
-            description,
-            note,
-            amount,
-            createdAt
+        return startDateMatch && endDateMatch && textMatch;
+    }).sort((a, b) => {
+        if (sortBy === 'date') {
+            return a.createdAt < b.createdAt ? 1 : -1;
         }
-    };
-};
 
-const removeExpense = (payload = {}) => {
-    const { id } = payload;
-
-    return {
-        type: 'REMOVE_EXPENSE',
-        expense: {
-            id
-        }
-    }
-}
-
-const editExpense = (id, updates) => {
-    return {
-        type: 'EDIT_EXPENSE',
-        id,
-        updates
-    }
-}
-
-const setTextFilter = (payload = {}) => {
-    const { text } = payload;
-
-    return {
-        type: 'SET_TEXT_FILTER',
-        filter: {
-            text
-        }
-    }
-};
-
-// REDUCERS
-const expensesReducer = (state = expensesReducerDefaultState, action) => {
-    switch (action.type) {
-        case 'ADD_EXPENSE':
-            // NEVER UPDATE THE ORIGINAL STATE, ALWAYS CREATE A COPY AND UPDATE THAT COPY
-            // return state.concat(action.expense);
-            return [ ...state, action.expense];
-        case 'REMOVE_EXPENSE':
-            return state.filter(item => item.id !== action.expense.id);
-        case 'EDIT_EXPENSE':
-            return state.map(expense => {
-                if (expense.id === action.id) {
-                    return {
-                        ...expense,
-                        ...action.updates
-                    }
-                } else {
-                    return expense;
-                }
-            })
-        default:
-            return state;
-    }
-};
-
-const filtersReducer = (state = filtersReducerDefaultState, action) => {
-    switch (action.type) {
-        case 'SET_TEXT_FILTER':
-            return {
-                ...state,
-                ...action.filter
-            }
-        default:
-            return state;
-    }
+        return b.createdAt < a.createdAt ? 1 : -1;
+    })
 };
 
 // COMBINE REDUCERS INTO ONE
@@ -121,14 +44,24 @@ const rootReducer = combineReducers({
 const store = createStore(rootReducer);
 
 store.subscribe(() => {
-    console.log('running');
+    const state = store.getState();
+    const visibleExpenses = getVisibleExpenses(state.expenses, state.filters);
+    console.log(visibleExpenses);
 });
 
-const expenseOne = store.dispatch(addExpense({ description: 'Rent', amount: 2000 }));
-const expenseTwo = store.dispatch(addExpense({ description: 'Car', amount: 1000 }));
+const expenseOne = store.dispatch(addExpense({ description: 'Rent', amount: 2000, createdAt: -21000 }));
+const expenseTwo = store.dispatch(addExpense({ description: 'Car', amount: 1000, createdAt: 1000 }));
 
-store.dispatch(removeExpense({ id: expenseOne.expense.id }));
-store.dispatch(editExpense(expenseTwo.expense.id, { amount: 1000, description: 'Edited description' }));
-store.dispatch(setTextFilter({ text: 'date' }));
+// store.dispatch(removeExpense({ id: expenseOne.expense.id }));
+// store.dispatch(editExpense(expenseTwo.expense.id, { amount: 1000, description: 'Edited description' }));
+// store.dispatch(setTextFilter('Car'));
+// store.dispatch(setTextFilter(''));
+// store.dispatch(sortByAmount());
+store.dispatch(sortByDate());
 
-console.log(store.getState());
+// store.dispatch(setStartDate(-2000));
+// store.dispatch(setStartDate());
+// store.dispatch(setEndDate(0));
+
+// console.log(store.getState());
+
