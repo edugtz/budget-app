@@ -19,7 +19,7 @@ const expenseOne = store.dispatch(addExpense({ description: 'Water bill', amount
 const expenseTwo = store.dispatch(addExpense({ description: 'Gas bill', amount: 200, createdAt: 1000 }));
 const expenseThree = store.dispatch(addExpense({ description: 'Rent', amount: 5000, createdAt: 0 }));
 
-store.dispatch(setTextFilter('water'));
+// store.dispatch(setTextFilter('water'));
 
 const jsx = (
     <Provider store={store}>
