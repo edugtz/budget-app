@@ -5,7 +5,7 @@ import { removeExpense } from '../redux/actions/expenses';
 
 const handleRemoveExpense = (props) => {
     props.removeExpense({ id: props.expense.id });
-}
+};
 
 const ExpenseListItem = (props) => {
     return (
@@ -15,7 +15,7 @@ const ExpenseListItem = (props) => {
             <button onClick={() => handleRemoveExpense(props)}>Remove</button>
         </div>
     );
-}
+};
 
 const mapDispatchToProps = (dispatch) => {
     return bindActionCreators({ removeExpense }, dispatch);
